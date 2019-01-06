@@ -1,7 +1,8 @@
 #include <Arduino.h>
+#include "TimerOne.h"
 
 #define MAX_INPUT 12
-#define LED_PIN 11
+#define LED_PIN 10
 
 char inputBuffer[MAX_INPUT + 1]; // Handles up to 90 bytes in a c-style string, with a null character termination.
 
@@ -9,8 +10,25 @@ void setup()
 {
   Serial.begin(115200);  // initialization
   inputBuffer[0] = '\0'; //Initialize string to emtpy.
+
+  Timer1.initialize(255);
+  Timer1.pwm(LED_PIN, 0);
+
   Serial.println("Begin:");
-  // pinMode(A0, OUTPUT);
+
+  // Setting 	Divisor 	Frequency
+  // 0x01 	 	1  		31372.55
+  // 0x02 	 	8 	 	3921.16
+  // 0x03  		32  		980.39
+  // 0x04 	 	64 	 	490.20   <--DEFAULT
+  // 0x05 	 	128  		245.10
+  // 0x06  		256  		122.55
+  // 0x07 	 	1024  		30.64
+
+  // TCCR2B = (TCCR2B & 0b11111000) | <setting>;
+  // TCCR2B = (TCCR2B & 0b11111000) | 0x02; // 3.9kHz frequency
+
+  // All frequencies are in Hz and assume a 16000000 Hz system clock.
 }
 
 void loop()
@@ -19,7 +37,9 @@ void loop()
   static uint16_t pwmVal;
 
   if (newPWM) {
-    analogWrite(LED_PIN, pwmVal);
+    // analogWrite(LED_PIN, pwmVal);
+    // TCCR2B = (TCCR2B & 0b11111000) | 0x02; // 3.9kHz frequency
+    Timer1.setPwmDuty(LED_PIN, pwmVal);
     newPWM = 0x00;
   }
 

@@ -2,7 +2,9 @@
 #include "TimerOne.h"
 
 #define MAX_INPUT 12
+#define AINPUT A0
 #define LED_PIN 10
+#define REPORT_INTERVAL 500
 
 char inputBuffer[MAX_INPUT + 1]; // Handles up to 90 bytes in a c-style string, with a null character termination.
 
@@ -13,6 +15,8 @@ void setup()
 
   Timer1.initialize(255);
   Timer1.pwm(LED_PIN, 0);
+
+  // pinMode(AINPUT, INPUT);
 
   Serial.println("Begin:");
 
@@ -35,13 +39,23 @@ void loop()
 {
   static uint8_t newPWM;
   static uint16_t pwmVal;
+  static uint16_t a_in;
+  static uint16_t lastRead;
 
-  if (newPWM) {
-    // analogWrite(LED_PIN, pwmVal);
-    // TCCR2B = (TCCR2B & 0b11111000) | 0x02; // 3.9kHz frequency
-    Timer1.setPwmDuty(LED_PIN, pwmVal);
-    newPWM = 0x00;
+  a_in = analogRead(AINPUT);
+  Timer1.setPwmDuty(LED_PIN, a_in);
+
+  if (millis() - lastRead > REPORT_INTERVAL) {
+    lastRead = millis();
+    Serial.println(a_in);
   }
+
+  // if (newPWM) {
+  //   // analogWrite(LED_PIN, pwmVal);
+  //   // TCCR2B = (TCCR2B & 0b11111000) | 0x02; // 3.9kHz frequency
+  //   Timer1.setPwmDuty(LED_PIN, pwmVal);
+  //   newPWM = 0x00;
+  // }
 
   if (Serial.available() > 0)
   {
